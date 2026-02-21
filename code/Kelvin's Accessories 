@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kelvin's Accessories</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box; font-family: Arial, sans-serif;}
+body {background:#f5f5f5; color:#333;}
+header {background:#1e90ff; color:white; display:flex; justify-content:space-between; align-items:center; padding:10px 20px; flex-wrap:wrap; position:sticky; top:0; z-index:1000;}
+.logo {font-size:1.7rem; font-weight:bold; cursor:pointer;}
+nav ul {list-style:none; display:flex; gap:15px; flex-wrap:wrap;}
+nav ul li a {color:white; text-decoration:none; font-weight:500;}
+.cart {font-size:1.2rem; cursor:pointer;}
+.hero {text-align:center; padding:60px 20px; background:#87cefa; color:#fff;}
+.hero h1 {font-size:2.8rem; margin-bottom:10px;}
+.hero p {font-size:1.3rem; margin-bottom:20px;}
+.btn {background:white; color:#1e90ff; padding:12px 25px; text-decoration:none; border-radius:6px; font-weight:bold; cursor:pointer; transition:0.3s;}
+.btn:hover {background:#f0f0f0;}
+.products {padding:40px 20px; text-align:center;}
+.products h2 {margin-bottom:20px; font-size:2rem;}
+.search-bar {margin-bottom:20px; position:relative;}
+.search-bar input {padding:10px; width:250px; border-radius:5px; border:1px solid #ccc;}
+.suggestions {position:absolute; top:42px; left:0; background:white; border:1px solid #ccc; width:250px; max-height:150px; overflow-y:auto; display:none; z-index:100;}
+.suggestions div {padding:8px; cursor:pointer;}
+.suggestions div:hover {background:#f0f0f0;}
+.sort-container {margin-bottom:20px;}
+.sort-container select {padding:10px; border-radius:5px; border:1px solid #ccc;}
+.filter-buttons {margin-bottom:20px;}
+.filter-buttons button {padding:10px 15px; margin:5px; border:none; border-radius:5px; cursor:pointer; background:#1e90ff; color:white; transition:0.3s;}
+.filter-buttons button:hover {background:#187bcd;}
+.product-grid {display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:25px;}
+.product-card {background:white; padding:15px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); text-align:center; transition:0.3s; position:relative; cursor:pointer;}
+.product-card:hover {transform:translateY(-5px); box-shadow:0 8px 20px rgba(0,0,0,0.12);}
+.product-card img {width:100%; border-radius:12px; height:220px; object-fit:cover;}
+.product-card h3 {margin:12px 0 6px; font-size:1.2rem;}
+.product-card p {margin-bottom:10px;}
+.product-card .price {color:#1e90ff; font-weight:bold;}
+.product-card .old-price {text-decoration: line-through; color:#888; margin-left:5px; font-weight:normal;}
+.sale-badge {position:absolute; top:10px; left:10px; background:red; color:white; padding:5px 8px; font-size:0.8rem; font-weight:bold; border-radius:5px;}
+.quantity-controls {display:flex; justify-content:center; align-items:center; gap:5px; margin-bottom:10px;}
+.quantity-controls button {padding:3px 8px; background:#1e90ff; color:white; border:none; border-radius:3px; cursor:pointer;}
+.quantity-controls span {min-width:20px; display:inline-block; text-align:center;}
+#productModal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:2000;}
+.modal-content {background:white; padding:20px; border-radius:10px; max-width:800px; width:95%; max-height:90%; overflow-y:auto; position:relative;}
+.close-modal {position:absolute; top:10px; right:15px; cursor:pointer; font-size:1.3rem; font-weight:bold;}
+.modal-img {width:100%; border-radius:10px; height:300px; object-fit:cover; margin-bottom:15px;}
+.thumbnail-container {display:flex; gap:5px; margin-bottom:10px; justify-content:center;}
+.thumbnail-container img {width:60px; height:60px; object-fit:cover; border-radius:5px; cursor:pointer; border:2px solid transparent;}
+.thumbnail-container img.active {border-color:#1e90ff;}
+.rating {color:gold; margin-bottom:10px;}
+.related-products {display:flex; gap:10px; overflow-x:auto; margin-top:15px;}
+.related-products .product-card {flex:0 0 120px; height:auto; cursor:pointer;}
+#cartModal {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:2000;}
+.cart-item {display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;}
+.checkout-btn {background:#1e90ff; color:white; border:none; padding:10px 15px; border-radius:5px; cursor:pointer; margin-top:10px; width:100%; transition:0.3s;}
+.checkout-btn:hover {background:#187bcd;}
+footer {background:#333; color:white; text-align:center; padding:20px; margin-top:30px;}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo" onclick="scrollToTop()">Kelvin's Accessories</div>
+<nav>
+<ul>
+<li><a href="#">Home</a></li>
+<li><a href="#shop">Shop</a></li>
+<li><a href="#">About</a></li>
+<li><a href="#">Contact</a></li>
+</ul>
+</nav>
+<div class="cart" onclick="openCart()">Cart (<span id="cart-count">0</span>) 🛒</div>
+</header>
+
+<section class="hero">
+<h1>Best Phone Accessories Online</h1>
+<p>Cases, chargers, earphones, and more!</p>
+<button class="btn" onclick="scrollToShop()">Shop Now</button>
+</section>
+
+<section id="shop" class="products">
+<h2>Our Products</h2>
+<div class="search-bar">
+<input type="text" id="searchInput" placeholder="Search products..." onkeyup="showSuggestions()">
+<div class="suggestions" id="searchSuggestions"></div>
+</div>
+<div class="sort-container">
+<select id="sortSelect" onchange="sortProducts()">
+<option value="default">Sort By</option>
+<option value="priceLow">Price: Low → High</option>
+<option value="priceHigh">Price: High → Low</option>
+<option value="ratingHigh">Rating: High → Low</option>
+</select>
+</div>
+<div class="filter-buttons" id="filterButtons"></div>
+<div class="product-grid" id="productGrid"></div>
+</section>
+
+<!-- Product Modal -->
+<div id="productModal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeProduct()">×</span>
+<img id="modalMainImg" class="modal-img" src="">
+<div class="thumbnail-container" id="modalThumbnails"></div>
+<h3 id="modalName"></h3>
+<p id="modalPrice" class="price"></p>
+<div class="rating" id="modalRating"></div>
+<p id="modalDesc"></p>
+<div class="quantity-controls">
+<button onclick="changeModalQty(-1)">-</button>
+<span id="modalQty">1</span>
+<button onclick="changeModalQty(1)">+</button>
+</div>
+<button class="btn" onclick="addModalToCart()">Add to Cart</button>
+<h4>Related Products</h4>
+<div class="related-products" id="relatedProducts"></div>
+<h4>Reviews</h4>
+<div id="modalReviews"></div>
+</div>
+</div>
+
+<!-- Cart Modal -->
+<div id="cartModal">
+<div class="modal-content">
+<span class="close-modal" onclick="closeCart()">×</span>
+<h2>Your Cart</h2>
+<div id="cartItems"></div>
+<h3>Total: $<span id="cartTotal">0</span></h3>
+<button class="checkout-btn" onclick="checkout()">Checkout</button>
+</div>
+</div>
+
+<footer>
+<p>© 2026 Kelvin's Accessories. All rights reserved.</p>
+</footer>
+
+<script>
+// ----- Brands, Categories, Colors -----
+const brands = ["iPhone","Samsung","Pixel","Huawei"];
+const categories = ["Case","Charger","Earphones","Screen Protector","Buds Cover"];
+const colors = ["Black","White","Red","Blue","Green","Purple"];
+
+// ----- Generate 200+ Realistic Products with High-Quality Images -----
+const products = [];
+for(let i=1;i<=200;i++){
+  const brand = brands[Math.floor(Math.random()*brands.length)];
+  const model = ["12","12 Pro","13","13 Pro","14","14 Pro","S21","S22","S23","Pixel 6","Pixel 7"][Math.floor(Math.random()*11)];
+  const category = categories[Math.floor(Math.random()*categories.length)];
+  const color = colors[Math.floor(Math.random()*colors.length)];
+  const name = `${brand} ${model} ${category} — ${color}`;
+  const price = Math.floor(Math.random()*50)+10;
+  const discount = Math.random()<0.3?Math.floor(Math.random()*10)+1:0;
+  const rating = Math.floor(Math.random()*5)+1;
+  const reviews = [];
+  for(let j=0;j<Math.floor(Math.random()*3)+1;j++){
+    reviews.push({name:"User"+(j+1), comment:"Excellent product!", rating: Math.floor(Math.random()*5)+1});
+  }
+  // High-quality Unsplash images
+  products.push({
+    name,
+    brand,
+    model,
+    category,
+    color,
+    imgs:[
+      `https://source.unsplash.com/800x800/?${brand}+${category}&sig=${i}`,
+      `https://source.unsplash.com/800x800/?${brand}+${category}&sig=${i+100}`,
+      `https://source.unsplash.com/800x800/?${brand}+${category}&sig=${i+200}`
+    ],
+    price,
+    discount,
+    rating,
+    desc:`Premium ${brand} ${model} ${category} in ${color}. Perfect for protecting and enhancing your device.`,
+    reviews
+  });
+}
+
+// ----- Display All Products -----
+let filteredProducts = [...products];
+
+function renderProducts(){
+  const grid = document.getElementById("productGrid");
+  grid.innerHTML = "";
+  filteredProducts.forEach((p,i)=>{
+    let priceHTML = p.discount? `<span class="price">$${(p.price-p.discount).toFixed(2)}</span> <span class="old-price">$${p.price.toFixed(2)}</span>`:`<span class="price">$${p.price}</span>`;
+    let badge = p.discount? `<div class="sale-badge">SALE</div>`:"";
+    const div = document.createElement("div");
+    div.className="product-card";
+    div.dataset.index=i;
+    div.innerHTML = `${badge}<img src="${p.imgs[0]}" alt="${p.name}"><h3>${p.name}</h3><p>${priceHTML}</p>`;
+    div.onclick = ()=>openProductModal(i);
+    grid.appendChild(div);
+  });
+}
+renderProducts();
+
+// --- Filters, Search, Sort, Modal, Cart (same as production-ready logic) ---
+</script>
+</body>
+</html>
+
+<script>
+// --- Cart Logic ---
+let cart = [];
+let modalQty = 1;
+let currentModalIndex = 0;
+
+// Add product to cart from modal
+function addModalToCart() {
+  const p = products[currentModalIndex];
+  const price = p.discount ? p.price - p.discount : p.price;
+  const item = cart.find(x => x.name === p.name);
+  if (item) {
+    item.quantity += modalQty;
+  } else {
+    cart.push({ name: p.name, price, quantity: modalQty });
+  }
+  updateCart();
+  alert(`${p.name} x${modalQty} added to cart!`);
+  closeProduct();
+}
+
+// Update cart UI and count
+function updateCart() {
+  const count = cart.reduce((a, i) => a + i.quantity, 0);
+  document.getElementById("cart-count").textContent = count;
+  displayCart();
+}
+
+// Display cart items
+function displayCart() {
+  const div = document.getElementById("cartItems");
+  div.innerHTML = "";
+  let subtotal = 0;
+  cart.forEach((item, index) => {
+    subtotal += item.price * item.quantity;
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "cart-item";
+    itemDiv.innerHTML = `
+      <span>${item.name}</span>
+      <div class="quantity-controls">
+        <button onclick="changeCartQty(${index},-1)">-</button>
+        <span>${item.quantity}</span>
+        <button onclick="changeCartQty(${index},1)">+</button>
+      </div>
+      <span>$${(item.price * item.quantity).toFixed(2)}</span>
+    `;
+    div.appendChild(itemDiv);
+  });
+  const tax = subtotal * 0.07; // 7% tax
+  const total = subtotal + tax;
+  document.getElementById("cartTotal").textContent = total.toFixed(2);
+}
+
+// Change quantity in cart
+function changeCartQty(index, delta) {
+  cart[index].quantity += delta;
+  if (cart[index].quantity < 1) cart.splice(index, 1);
+  updateCart();
+}
+
+// Open / Close Cart
+function openCart() { displayCart(); document.getElementById("cartModal").style.display = "flex"; }
+function closeCart() { document.getElementById("cartModal").style.display = "none"; }
+
+// Checkout simulation
+function checkout() {
+  if (cart.length === 0) { alert("Your cart is empty!"); return; }
+
+  const subtotal = cart.reduce((a, i) => a + i.price * i.quantity, 0);
+  const tax = subtotal * 0.07; // 7% tax
+  const total = subtotal + tax;
+
+  const confirmMsg = `Checkout Summary:\n\nSubtotal: $${subtotal.toFixed(2)}\nTax (7%): $${tax.toFixed(2)}\nTotal: $${total.toFixed(2)}\n\nProceed with payment simulation?`;
+  
+  if (confirm(confirmMsg)) {
+    alert(`Payment successful!\n\nThank you for shopping at Kelvin's Accessories.`);
+    cart = []; // empty cart after checkout
+    updateCart();
+    closeCart();
+  }
+}
+
+// Quantity controls in modal
+function changeModalQty(delta) {
+  modalQty += delta;
+  if (modalQty < 1) modalQty = 1;
+  document.getElementById("modalQty").textContent = modalQty;
+}
+
+// Product Modal Functions
+function openProductModal(i) {
+  currentModalIndex = i;
+  modalQty = 1;
+  document.getElementById("modalQty").textContent = "1";
+  const p = products[i];
+
+  // Main image
+  document.getElementById("modalMainImg").src = p.imgs[0];
+
+  // Thumbnails
+  const thumbs = document.getElementById("modalThumbnails");
+  thumbs.innerHTML = "";
+  p.imgs.forEach((img, idx) => {
+    const t = document.createElement("img");
+    t.src = img;
+    if (idx === 0) t.classList.add("active");
+    t.onclick = () => {
+      document.getElementById("modalMainImg").src = img;
+      document.querySelectorAll("#modalThumbnails img").forEach(x => x.classList.remove("active"));
+      t.classList.add("active");
+    };
+    thumbs.appendChild(t);
+  });
+
+  // Product details
+  document.getElementById("modalName").textContent = p.name;
+  document.getElementById("modalPrice").textContent = p.discount ? `$${(p.price - p.discount).toFixed(2)} (was $${p.price.toFixed(2)})` : `$${p.price}`;
+  document.getElementById("modalDesc").textContent = p.desc;
+  document.getElementById("modalRating").innerHTML = "★".repeat(p.rating) + "☆".repeat(5 - p.rating);
+
+  // Related products
+  const relatedDiv = document.getElementById("relatedProducts");
+  relatedDiv.innerHTML = "";
+  products.filter(x => x.category === p.category && x.name !== p.name).slice(0, 4).forEach(rel => {
+    const div = document.createElement("div");
+    div.className = "product-card";
+    div.innerHTML = `<img src="${rel.imgs[0]}" alt="${rel.name}"><h5>${rel.name}</h5>`;
+    div.onclick = () => openProductModal(products.indexOf(rel));
+    relatedDiv.appendChild(div);
+  });
+
+  // Reviews
+  const revDiv = document.getElementById("modalReviews");
+  revDiv.innerHTML = "";
+  p.reviews.forEach(r => {
+    const div = document.createElement("div");
+    div.innerHTML = `<strong>${r.name}</strong>: ${r.comment} (${'★'.repeat(r.rating)+'☆'.repeat(5-r.rating)})`;
+    revDiv.appendChild(div);
+  });
+
+  document.getElementById("productModal").style.display = "flex";
+}
+function closeProduct() { document.getElementById("productModal").style.display = "none"; }
+
+// Scroll helpers
+function scrollToShop() { document.getElementById("shop").scrollIntoView({behavior:"smooth"}); }
+function scrollToTop() { window.scrollTo({top:0, behavior:"smooth"}); }
+
+// --- Filters and Search ---
+const filterContainer = document.getElementById("filterButtons");
+const dynamicCategories = ["all", ...new Set(products.map(p => p.category))];
+dynamicCategories.forEach(cat => {
+  const btn = document.createElement("button");
+  btn.textContent = cat;
+  btn.onclick = () => {
+    filteredProducts = cat === "all" ? [...products] : products.filter(p => p.category === cat);
+    renderProducts();
+  };
+  filterContainer.appendChild(btn);
+});
+
+function showSuggestions() {
+  const val = document.getElementById("searchInput").value.toLowerCase();
+  const sugDiv = document.getElementById("searchSuggestions");
+  if (!val) { sugDiv.style.display = "none"; return; }
+  sugDiv.innerHTML = "";
+  const matched = products.filter(p => p.name.toLowerCase().includes(val)).slice(0, 5);
+  matched.forEach(m => {
+    const div = document.createElement("div");
+    div.textContent = m.name;
+    div.onclick = () => {
+      document.getElementById("searchInput").value = m.name;
+      filteredProducts = products.filter(p => p.name === m.name);
+      renderProducts();
+      sugDiv.style.display = "none";
+    };
+    sugDiv.appendChild(div);
+  });
+  sugDiv.style.display = matched.length ? "block" : "none";
+}
+
+function sortProducts() {
+  const sel = document.getElementById("sortSelect").value;
+  if (sel === "default") filteredProducts = [...products];
+  if (sel === 
